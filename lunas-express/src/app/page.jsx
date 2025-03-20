@@ -1,9 +1,11 @@
-import Login from "./components/Login.jsx";
+import AuthForm from "./auth_components/AuthForm.jsx";
 
 export default function Home() {
   return (
     <>
-      <Login />
+      {/* For debugging purposes */}
+      <AuthForm />
+      {/* <SignUp /> */}
     </>
   );
 }
