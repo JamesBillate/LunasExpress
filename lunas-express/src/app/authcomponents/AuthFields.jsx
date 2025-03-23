@@ -23,7 +23,7 @@ export function Button({ type, label, color }) {
   return (
     <>
       <button
-        className={`mt-2 ${color} p-2 rounded-lg text-gray-50 font-medium cursor-pointer`}
+        className={`flex justify-center items-center gap-2 mt-2 ${color} p-2 rounded-lg font-medium cursor-pointer`}
         type={type}
       >
         {label}

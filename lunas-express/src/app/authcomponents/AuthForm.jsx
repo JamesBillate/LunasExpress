@@ -1,5 +1,6 @@
 import { useRouter } from "next/navigation";
-import { routes } from "../routes";
+import { FcGoogle } from "react-icons/fc";
+import Link from "next/link";
 
 import EntryField, { Button } from "./AuthFields";
 
@@ -8,8 +9,8 @@ export default function AuthForm({ title, buttonText, authMode, formState }) {
   //This is the main component for the AuthForm in Login, Signup and Forgot Password
   return (
     <>
-      <div className="flex justify-center items-center h-screen">
-        <div className="px-10 py-12 bg-blue-300 w-[25rem] rounded-xl">
+      <div className="flex justify-end items-center h-screen">
+        <div className="mr-[20vh] px-10 py-12 bg-gray-100 w-[25rem] rounded-xl shadow-lg">
           <form className="grid">
             <h1 className="text-2xl font-bold">{title}</h1>
             {/* Login and Signup Username */}
@@ -47,16 +48,25 @@ export default function AuthForm({ title, buttonText, authMode, formState }) {
             {/* For Login AuthForm */}
             {authMode === "login" && (
               <div className="mt-2 text-right text-sm cursor-pointer">
-                <a onClick={() => router.push(routes.ForgotPW)}>
-                  {" "}
-                  Forgot password?
-                </a>
+                <Link href="/forgotpw"> Forgot password?</Link>
               </div>
             )}
             <div className="p-2"></div>
-            <Button type="submit" label={buttonText} color="bg-blue-600" />
+            <Button
+              type="submit"
+              label={buttonText}
+              color="bg-blue-600 text-gray-50"
+            />
             {authMode === "login" || authMode === "signup" ? (
-              <Button type="button" label="Google" color="bg-red-600" />
+              <Button
+                type="button"
+                color="bg-gray-300 text-black"
+                label={
+                  <>
+                    Continue with <FcGoogle />
+                  </>
+                }
+              />
             ) : (
               ""
             )}
@@ -64,25 +74,19 @@ export default function AuthForm({ title, buttonText, authMode, formState }) {
             {authMode === "signup" && (
               <div className="mt-10 text-center text-sm">
                 Already have an account?
-                <a
-                  className="font-semibold cursor-pointer"
-                  onClick={() => router.push(routes.Login)}
-                >
+                <Link className="font-semibold cursor-pointer" href="/login">
                   {" "}
                   Log In
-                </a>
+                </Link>
               </div>
             )}
             {authMode === "login" && (
               <div className="mt-10 text-center text-sm">
                 Dont have an account?
-                <a
-                  className="font-semibold cursor-pointer"
-                  onClick={() => router.push(routes.SignUp)}
-                >
+                <Link className="font-semibold cursor-pointer" href="/signup">
                   {" "}
                   Sign Up
-                </a>
+                </Link>
               </div>
             )}
           </form>
