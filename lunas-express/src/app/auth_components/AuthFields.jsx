@@ -1,4 +1,10 @@
-export default function EntryField({ type, label, placeholder }) {
+export default function EntryField({
+  type,
+  label,
+  placeholder,
+  onChange,
+  value,
+}) {
   return (
     <>
       <label className="mt-3">{label}</label>
@@ -6,6 +12,8 @@ export default function EntryField({ type, label, placeholder }) {
         className="border-1 pl-4 py-2 pr-5 rounded-lg text-md w-[100%]"
         placeholder={placeholder}
         type={type}
+        onChange={onChange}
+        value={value}
       />
     </>
   );

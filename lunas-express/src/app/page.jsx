@@ -5,9 +5,7 @@ import ForgotPW from "./auth_components/ForgotPW.jsx";
 export default function Home() {
   return (
     <>
-      <SignUp />
       <Login />
-      <ForgotPW />
     </>
   );
 }
