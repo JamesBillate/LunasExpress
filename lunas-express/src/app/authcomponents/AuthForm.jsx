@@ -7,9 +7,10 @@ import EntryField, { Button } from "./AuthFields";
 export default function AuthForm({ title, buttonText, authMode, formState }) {
   const router = useRouter();
   //This is the main component for the AuthForm in Login, Signup and Forgot Password
+  //Avoid directly indicate the Firebase connection here
   return (
     <>
-      <div className="flex justify-end items-center h-screen">
+      <div className="flex justify-end items-center h-screen bg-[#0864db]">
         <div className="mr-[20vh] px-10 py-12 bg-gray-100 w-[25rem] rounded-xl shadow-lg">
           <form className="grid">
             <h1 className="text-2xl font-bold">{title}</h1>
