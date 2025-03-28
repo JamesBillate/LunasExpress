@@ -3,7 +3,6 @@
 import AuthForm from "../AuthForm";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { FaUpload } from "react-icons/fa6";
 
 // Firebase imports
 import { useSignInWithEmailAndPassword } from "react-firebase-hooks/auth";
@@ -11,8 +10,8 @@ import { signInWithPopup } from "firebase/auth";
 import { auth, provider } from "../../firebase/config";
 
 export default function Login() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [email, setEmail] = useState("james.billate@ciit.edu.ph");
+  const [password, setPassword] = useState("dO1ng_gr3@t");
   const router = useRouter();
 
   const [signInWithEmailAndPassword, user, loading, error] =

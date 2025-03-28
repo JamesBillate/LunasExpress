@@ -12,3 +12,7 @@ body {
   color: var(--foreground);
   font-family: Montserrat, Helvetica, sans-serif;
 }
+
+.clip-path-triangle {
+  clip-path: polygon(0% 0%, 100% 0%, 70% 100%, 0% 100%);
+}

@@ -1,5 +1,3 @@
-import { FaUpload } from "react-icons/fa6";
-
 export default function EntryField({
   type,
   label,
@@ -36,6 +34,19 @@ export function Button({ type, label, color }) {
     <>
       <button
         className={`flex justify-center items-center gap-2 mt-2 ${color} p-2 rounded-lg font-medium cursor-pointer`}
+        type={type}
+      >
+        {label}
+      </button>
+    </>
+  );
+}
+
+export function Main({ type, label, color }) {
+  return (
+    <>
+      <button
+        className={`flex justify-center items-center gap-2 mt-2 ${color} px-5 py-4 rounded-4xl font-medium cursor-pointer w-1/6 inset-shadow-md`}
         type={type}
       >
         {label}

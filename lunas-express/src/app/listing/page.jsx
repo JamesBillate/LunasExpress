@@ -1,7 +1,7 @@
 "use client";
 
 import ShopCard from "../home/shopcard";
-import EntryField, { Button } from "../commons/Fields";
+import EntryField, { Button } from "../commons/commons";
 import { useState } from "react";
 import { FaUpload } from "react-icons/fa6";
 

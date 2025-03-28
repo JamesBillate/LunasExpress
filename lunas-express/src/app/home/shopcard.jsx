@@ -10,7 +10,7 @@ export default function ShopCard({
 }) {
   return (
     <>
-      <div className="bg-gray-200 rounded-md">
+      <div className="bg-gray-100 rounded-md shadow-lg">
         <img
           className="w-full h-35 object-cover object-center overflow-hidden rounded-tr-md rounded-tl-md"
           src={image}

@@ -2,7 +2,7 @@ import { useRouter } from "next/navigation";
 import { FcGoogle } from "react-icons/fc";
 import Link from "next/link";
 
-import EntryField, { Button } from "../commons/Fields";
+import EntryField, { Button } from "../commons/commons";
 
 export default function AuthForm({ title, buttonText, authMode, formState }) {
   const router = useRouter();
