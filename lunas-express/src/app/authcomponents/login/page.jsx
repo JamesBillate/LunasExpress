@@ -5,25 +5,26 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 // Firebase imports
-import { useSignInWithEmailAndPassword } from 'react-firebase-hooks/auth';
+import { useSignInWithEmailAndPassword } from "react-firebase-hooks/auth";
 import { signInWithPopup } from "firebase/auth";
 import { auth, provider } from "../../firebase/config";
 
 export default function Login() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [email, setEmail] = useState("james.billate@ciit.edu.ph");
+  const [password, setPassword] = useState("dO1ng_gr3@t");
   const router = useRouter();
 
-  const [signInWithEmailAndPassword, user, loading, error] = useSignInWithEmailAndPassword(auth);
+  const [signInWithEmailAndPassword, user, loading, error] =
+    useSignInWithEmailAndPassword(auth);
 
   // Sign in with google
   const handleGoogleLogin = async () => {
     if (typeof window === "undefined") return; // Prevents SSR issues
-    
+
     try {
-      const res = await signInWithPopup(auth, provider); 
+      const res = await signInWithPopup(auth, provider);
       console.log("Google Sign-In Successful:", res);
-  
+
       if (res.user) {
         console.log("User Info:", res.user);
         router.push("/home"); // Redirect after successful sign-in
