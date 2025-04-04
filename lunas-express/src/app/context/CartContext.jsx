@@ -3,25 +3,28 @@
 
 import { createContext, useContext, useState, useEffect } from "react";
 import { db } from "../firebase/config";
-import { collection, getDocs, addDoc, updateDoc,doc,onSnapshot} from "firebase/firestore";
+import { collection, getDocs, addDoc, updateDoc, doc, onSnapshot, deleteDoc } from "firebase/firestore";
 
 const CartContext = createContext();
 
 export function CartProvider({ children }) {
+  const [cartItems, setCartItems] = useState([]); // Add cartItems state
   const [cartCount, setCartCount] = useState(0);
 
   useEffect(() => {
     const cartCollection = collection(db, "cart");
 
-    // Real-time cart count updates
+    // Real-time listener for cart items
     const unsubscribe = onSnapshot(
       cartCollection,
       (snapshot) => {
-        const totalItems = snapshot.docs.reduce(
-          (sum, doc) => sum + (doc.data().quantity || 1), 
-          0
-        );
-        setCartCount(totalItems);
+        const items = snapshot.docs.map((doc) => ({
+          docId: doc.id, // Store the Firestore document ID
+          ...doc.data(),
+        }));
+        setCartItems(items); // Update cartItems state
+        const totalItems = items.reduce((sum, item) => sum + (item.quantity || 1), 0);
+        setCartCount(totalItems); // Update cartCount
       },
       (error) => {
         console.error("Error listening to cart updates:", error);
@@ -56,13 +59,27 @@ export function CartProvider({ children }) {
     }
   };
 
+  // Function to remove an item from the cart
+  const removeFromCart = async (docId) => {
+    try {
+      const itemRef = doc(db, "cart", docId);
+      await deleteDoc(itemRef);
+    } catch (error) {
+      console.error("Error removing item from cart:", error);
+    }
+  };
+
   return (
-    <CartContext.Provider value={{ cartCount, addToCart }}>
+    <CartContext.Provider value={{ cartItems, cartCount, addToCart, removeFromCart }}>
       {children}
     </CartContext.Provider>
   );
 }
 
 export function useCart() {
-  return useContext(CartContext);
+  const context = useContext(CartContext);
+  if (!context) {
+    throw new Error("useCart must be used within a CartProvider");
+  }
+  return context;
 }
