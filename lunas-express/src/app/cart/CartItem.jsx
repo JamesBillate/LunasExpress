@@ -39,9 +39,6 @@ export default function CartItem({ item }) {
       </div>
       <div className="flex gap-3">
         <button className="text-gray-600 hover:text-red-500">
-          <FaHeart />
-        </button>
-        <button className="text-gray-600 hover:text-red-500">
           <FaTrash />
         </button>
       </div>

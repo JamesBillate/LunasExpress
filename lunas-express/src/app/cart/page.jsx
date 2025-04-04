@@ -6,7 +6,7 @@ import { db } from '../firebase/config';
 import { collection, getDocs } from 'firebase/firestore';
 import CartItem from './CartItem';
 import { motion } from 'framer-motion';
-import { FaShoppingCart, FaSearch, FaHeart, FaTrash } from 'react-icons/fa';
+import { FaShoppingCart, FaSearch, FaTrash } from 'react-icons/fa';
 import { MdAccountCircle } from 'react-icons/md';
 import { useCart } from '../context/CartContext';
 
