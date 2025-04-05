@@ -1,14 +1,15 @@
 // src/app/cart/page.jsx
 "use client";
 
-import { useCart } from "../context/CartContext";
+import { onAuthStateChanged } from "firebase/auth";
+import { arrayRemove, doc, getDoc, updateDoc } from "firebase/firestore"; // Import Firestore functions
+import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { auth } from "../firebase/config";
-import { onAuthStateChanged } from "firebase/auth";
-import { FaShoppingCart, FaSearch } from "react-icons/fa";
+import { FaSearch, FaShoppingCart } from "react-icons/fa";
 import { MdAccountCircle } from "react-icons/md";
-import { motion } from "framer-motion";
+import { useCart } from "../context/CartContext";
+import { auth, db } from "../firebase/config";
 
 export default function Cart() {
   const { cartItems = [], cartCount, removeFromCart } = useCart();
@@ -16,6 +17,8 @@ export default function Cart() {
   const [authChecked, setAuthChecked] = useState(false);
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [loadingCart, setLoadingCart] = useState(true);
+  const [cartItemsState, setCartItems] = useState([]);
 
   // Authentication check
   useEffect(() => {
@@ -29,11 +32,36 @@ export default function Cart() {
     return () => unsubscribe();
   }, [router]);
 
+  // Fetch cart data
+  useEffect(() => {
+    if (user) {
+      const cartRef = doc(db, "carts", user.uid);
+      const getCartData = async () => {
+        const docSnap = await getDoc(cartRef);
+        if (docSnap.exists()) {
+          setCartItems(docSnap.data().items || []);
+        }
+        setLoadingCart(false); // End loading
+      };
+      getCartData();
+    }
+  }, [user]);
+
   const handleRemove = async (docId) => {
-    setLoading(true);
-    await removeFromCart(docId); // Pass docId instead of id
-    setLoading(false);
+    try {
+      const cartRef = doc(db, "carts", user.uid);
+      await updateDoc(cartRef, {
+        items: arrayRemove(docId),
+      });
+      setCartItems((prevItems) => prevItems.filter(item => item.docId !== docId));
+    } catch (error) {
+      console.error("Error removing item from cart:", error);
+    }
   };
+
+  if (loadingCart) {
+    return <div>Loading your cart...</div>; // Show loading message while cart is loading
+  }
 
   if (!authChecked) {
     return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
@@ -97,7 +125,7 @@ export default function Cart() {
             <p className="text-center text-gray-600">Your cart is empty.</p>
           ) : (
             cartItems.map((item) => (
-              <div key={item.docId} className="flex gap-4 mb-4 border-b pb-4">
+              <div key={item.docId || item.title} className="flex gap-4 mb-4 border-b pb-4">
                 <img
                   src={item.image}
                   alt={item.title}

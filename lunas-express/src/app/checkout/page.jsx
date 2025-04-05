@@ -1,6 +1,6 @@
 // src/app/checkout/page.jsx
 "use client";
-
+import { createOrder } from "../firebase/orders";
 import { useCart } from "../context/CartContext";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -9,6 +9,7 @@ import { onAuthStateChanged } from "firebase/auth";
 import { FaShoppingCart, FaSearch } from "react-icons/fa";
 import { MdAccountCircle } from "react-icons/md";
 import { motion } from "framer-motion";
+import { saveOrder } from "../firebase/firestore";
 
 export default function Checkout() {
   const { cartItems, cartCount } = useCart();
@@ -52,10 +53,28 @@ export default function Checkout() {
   const shippingFee = selectedDelivery === "standard" ? 30 : 60; // $30 for Standard, $60 for Express
   const total = subtotal + shippingFee;
 
-  const handlePlaceOrder = () => {
-    // Placeholder for order placement logic
-    alert("Order placed successfully!");
-    router.push("/order-confirmation");
+  const handlePlaceOrder = async () => {
+    if (!user) return;
+  
+    const order = {
+      userId: user.uid,
+      cartItems,
+      cartCount,
+      shippingDetails,
+      deliveryMethod: selectedDelivery,
+      paymentMethod: selectedPayment,
+      subtotal,
+      shippingFee,
+      total,
+    };
+  
+    try {
+      const orderId = await createOrder(user.uid, cartItems, total);
+      router.push(`/order-confirmation?orderId=${orderId}`);
+    } catch (err) {
+      console.error("Error placing order:", err);
+      alert("There was a problem placing your order. Try again.");
+    }
   };
 
   // Handle edit button click
