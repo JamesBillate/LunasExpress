@@ -1,15 +1,14 @@
 // src/app/checkout/page.jsx
 "use client";
+
 import { createOrder } from "../firebase/orders";
 import { useCart } from "../context/CartContext";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { auth } from "../firebase/config";
+import { auth, db } from "../firebase/config";
 import { onAuthStateChanged } from "firebase/auth";
-import { FaShoppingCart, FaSearch } from "react-icons/fa";
-import { MdAccountCircle } from "react-icons/md";
-import { motion } from "framer-motion";
-import { saveOrder } from "../firebase/firestore";
+import { doc, getDoc, setDoc } from "firebase/firestore";
+import Header from "../components/header";
 
 export default function Checkout() {
   const { cartItems, cartCount } = useCart();
@@ -20,20 +19,31 @@ export default function Checkout() {
   const [selectedPayment, setSelectedPayment] = useState("credit");
 
   // State for shipping details and edit mode
-  const [shippingDetails, setShippingDetails] = useState({
-    recipientName: "John Doe",
-    address: "123 Pharmacy St, New York, USA",
-    contactNumber: "585-555-2293",
-  });
+  const [shippingDetails, setShippingDetails] = useState(null); // No default values
   const [isEditing, setIsEditing] = useState(false);
-  const [tempDetails, setTempDetails] = useState(shippingDetails);
+  const [tempDetails, setTempDetails] = useState({
+    recipientName: "",
+    address: "",
+    contactNumber: "",
+  });
 
-  // Authentication check
+  // Authentication check and fetch shipping details
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setUser(currentUser);
       if (!currentUser) {
         router.push("/");
+      } else {
+        // Fetch shipping details from Firestore
+        const userDocRef = doc(db, "users", currentUser.uid);
+        const userDoc = await getDoc(userDocRef);
+        if (userDoc.exists() && userDoc.data().shippingDetails) {
+          setShippingDetails(userDoc.data().shippingDetails);
+          setTempDetails(userDoc.data().shippingDetails);
+        } else {
+          // If no shipping details exist, keep them as null
+          setShippingDetails(null);
+        }
       }
       setAuthChecked(true);
     });
@@ -50,12 +60,16 @@ export default function Checkout() {
 
   // Calculate totals
   const subtotal = cartItems.reduce((total, item) => total + item.price * item.quantity, 0);
-  const shippingFee = selectedDelivery === "standard" ? 30 : 60; // $30 for Standard, $60 for Express
+  const shippingFee = selectedDelivery === "standard" ? 30 : 60;
   const total = subtotal + shippingFee;
 
   const handlePlaceOrder = async () => {
     if (!user) return;
-  
+    if (!shippingDetails) {
+      alert("Please provide your shipping details before placing an order.");
+      return;
+    }
+
     const order = {
       userId: user.uid,
       cartItems,
@@ -67,9 +81,22 @@ export default function Checkout() {
       shippingFee,
       total,
     };
-  
+
     try {
       const orderId = await createOrder(user.uid, cartItems, total);
+      const userDocRef = doc(db, "users", user.uid);
+      const userDoc = await getDoc(userDocRef);
+      const existingMethods = userDoc.exists() && userDoc.data().paymentMethods ? userDoc.data().paymentMethods : [];
+      const newMethod = {
+        id: Date.now().toString(),
+        type: selectedPayment,
+        details: `${
+          selectedPayment === "credit" ? "Credit Card" : selectedPayment === "ewallet" ? "E-Wallet" : "Cash on Delivery"
+        }`,
+      };
+      const updatedMethods = [...existingMethods, newMethod];
+      await setDoc(userDocRef, { paymentMethods: updatedMethods }, { merge: true });
+
       router.push(`/order-confirmation?orderId=${orderId}`);
     } catch (err) {
       console.error("Error placing order:", err);
@@ -77,84 +104,49 @@ export default function Checkout() {
     }
   };
 
-  // Handle edit button click
   const handleEditClick = () => {
-    setTempDetails(shippingDetails); // Store current details in temp state
+    setTempDetails(shippingDetails || { recipientName: "", address: "", contactNumber: "" });
     setIsEditing(true);
   };
 
-  // Handle form input changes
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setTempDetails((prev) => ({ ...prev, [name]: value }));
   };
 
-  // Handle save button click
-  const handleSave = () => {
-    setShippingDetails(tempDetails); // Update shipping details with edited values
+  const handleSave = async () => {
+    setShippingDetails(tempDetails);
     setIsEditing(false);
+
+    const userDocRef = doc(db, "users", user.uid);
+    try {
+      await setDoc(userDocRef, { shippingDetails: tempDetails }, { merge: true });
+    } catch (error) {
+      console.error("Error saving shipping details:", error);
+      alert("Failed to save shipping details.");
+    }
   };
 
-  // Handle cancel button click
   const handleCancel = () => {
-    setTempDetails(shippingDetails); // Revert to original details
+    setTempDetails(shippingDetails || { recipientName: "", address: "", contactNumber: "" });
     setIsEditing(false);
   };
 
   return (
     <div className="bg-[#ededed] min-h-screen">
-      {/* Header */}
-      <div className="bg-[url('https://api.watsons.com.ph/medias/Homepage-Main-Banner-1170x528.jpg?context=bWFzdGVyfGltYWdlc3wzNjAwODZ8aW1hZ2UvanBlZ3xhRFkzTDJnNE5DOHhOams0TlRJd09EQTJNVGs0TWk5SWIyMWxjR0ZuWlNCTllXbHVJRUpoYm01bGNpQXRJREV4TnpCNE5USTRMbXB3Wnd8NTRlZjUyZGQ5NDhiZTM5MmUxMDAxZmVmNzA2YWY1ZWFkOTQyOGI3MTEyZTllZjA2NDAxYzc0NjRhZjY1ZWU4Nw')] bg-cover bg-center h-90 relative before:content-[''] before:absolute before:bottom-0 before:left-0 before:w-full before:h-8 before:bg-gradient-to-t before:from-black/20 before:to-transparent">
-        <header className="bg-cyan-500 mx-15 rounded-b-lg absolute top-0 inset-x-0 flex items-center">
-          <div className="relative bg-cyan-700 p-5 w-80 text-white rounded-b-lg clip-path-triangle">
-            <img src="/lunasexpress-neg.png" className="w-44 ml-5" />
-          </div>
-          <div className="flex-1 flex justify-center">
-            <div className="relative w-2/3">
-              <input
-                type="text"
-                placeholder="Search here..."
-                className="bg-gray-100 pl-10 py-2 pr-3 rounded-lg w-full focus:ring-2 focus:ring-blue-500"
-              />
-              <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" />
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-10 mr-10 items-center text-3xl text-gray-100 ml-auto p-3">
-            <a href="/cart" className="relative">
-              <FaShoppingCart size={24} />
-              {cartCount > 0 && (
-                <motion.span
-                  className="absolute -top-2 -right-2 bg-amber-500 text-white text-xs rounded-full px-2 py-1"
-                  animate={{ scale: [0.8, 1.2, 1] }}
-                  transition={{ duration: 0.3 }}
-                >
-                  {cartCount}
-                </motion.span>
-              )}
-            </a>
-            <a>
-              <MdAccountCircle size={24} />
-            </a>
-          </div>
-        </header>
-      </div>
+      <Header showSearch={false} />
 
-      {/* Main Content */}
       <div className="max-w-6xl mx-auto py-10 flex gap-6">
-        {/* Left Section: Shipping Address, Delivery Options, and Cart Items */}
         <div className="flex-1 bg-white p-6 rounded-lg shadow-lg">
-          {/* Shipping Address */}
           <div className="mb-6">
             <div className="flex justify-between items-center">
               <h2 className="text-xl font-semibold text-cyan-700">Shipping Address</h2>
-              {!isEditing && (
-                <button
-                  onClick={handleEditClick}
-                  className="text-cyan-500 hover:underline"
-                >
-                  Edit
-                </button>
-              )}
+              <button
+                onClick={handleEditClick}
+                className="text-cyan-500 hover:underline"
+              >
+                {shippingDetails ? "Edit" : "Add"}
+              </button>
             </div>
             {isEditing ? (
               <div className="mt-4">
@@ -168,6 +160,7 @@ export default function Checkout() {
                     value={tempDetails.recipientName}
                     onChange={handleInputChange}
                     className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-cyan-500"
+                    required
                   />
                 </div>
                 <div className="mb-4">
@@ -180,6 +173,7 @@ export default function Checkout() {
                     onChange={handleInputChange}
                     className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-cyan-500"
                     rows="3"
+                    required
                   />
                 </div>
                 <div className="mb-4">
@@ -192,12 +186,14 @@ export default function Checkout() {
                     value={tempDetails.contactNumber}
                     onChange={handleInputChange}
                     className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-cyan-500"
+                    required
                   />
                 </div>
                 <div className="flex gap-3">
                   <button
                     onClick={handleSave}
                     className="bg-cyan-500 text-white px-4 py-2 rounded-lg hover:bg-cyan-600"
+                    disabled={!tempDetails.recipientName || !tempDetails.address || !tempDetails.contactNumber}
                   >
                     Save
                   </button>
@@ -211,14 +207,19 @@ export default function Checkout() {
               </div>
             ) : (
               <div className="text-gray-600 mt-2">
-                <p>{shippingDetails.recipientName}</p>
-                <p>{shippingDetails.address}</p>
-                <p>{shippingDetails.contactNumber}</p>
+                {shippingDetails ? (
+                  <>
+                    <p>{shippingDetails.recipientName}</p>
+                    <p>{shippingDetails.address}</p>
+                    <p>{shippingDetails.contactNumber}</p>
+                  </>
+                ) : (
+                  <p>No shipping details set. Please add your shipping details.</p>
+                )}
               </div>
             )}
           </div>
 
-          {/* Delivery Options */}
           <div className="mb-6">
             <h2 className="text-xl font-semibold text-cyan-700 mb-2">Choose your delivery option</h2>
             <div className="flex gap-4">
@@ -253,7 +254,6 @@ export default function Checkout() {
             </div>
           </div>
 
-          {/* Cart Items */}
           <div>
             <h2 className="text-xl font-semibold text-cyan-700 mb-4">Items</h2>
             {cartItems.length === 0 ? (
@@ -280,9 +280,7 @@ export default function Checkout() {
           </div>
         </div>
 
-        {/* Right Section: Payment Method and Order Summary */}
         <div className="w-80 bg-white p-6 rounded-lg shadow-lg">
-          {/* Payment Method */}
           <div className="mb-6">
             <div className="flex justify-between items-center">
               <h2 className="text-xl font-semibold text-cyan-700">Select payment method</h2>
@@ -325,7 +323,6 @@ export default function Checkout() {
             </div>
           </div>
 
-          {/* Order Summary */}
           <div className="mb-6">
             <h2 className="text-xl font-semibold text-cyan-700 mb-2">Order Summary</h2>
             <div className="flex justify-between text-gray-600">
@@ -342,7 +339,6 @@ export default function Checkout() {
             </div>
           </div>
 
-          {/* Place Order Button */}
           <button
             onClick={handlePlaceOrder}
             className="w-full bg-amber-500 text-white py-3 rounded-lg font-semibold hover:bg-amber-600 transition"
