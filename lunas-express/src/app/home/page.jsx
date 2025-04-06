@@ -1,29 +1,64 @@
-"use client";
-
+import { title } from "process";
+import ShopCard from "./shopcard";
 import { FaShoppingCart } from "react-icons/fa";
 import { MdAccountCircle } from "react-icons/md";
 import { FaSearch } from "react-icons/fa";
 import { Main } from "../commons/commons.jsx";
-import React, { useState, useEffect } from "react";
-import { db, collection } from "../firebase/config";
-import ShopCard from "./shopcard"; // Ensure this is correctly imported
-import { onSnapshot } from "firebase/firestore";
+
+const medicine = [
+  {
+    id: "1",
+    title: "Paracetamol",
+    provider: "Unilab",
+    stars: "⭐⭐⭐⭐",
+    reviews: "5",
+    price: "$50",
+    image:
+      "https://assets.unilab.com.ph/uploads/Common/Products/Biogesic/Biogesic-Tablet-Product-Shot-314.webp",
+  },
+  {
+    id: "2",
+    title: "Ibuprofen",
+    provider: "Pfizer",
+    stars: "⭐⭐⭐⭐⭐",
+    reviews: "12",
+    price: "$75",
+    image:
+      "https://medsgo.ph/images/detailed/25/86b167b5ca6d43d0950795ca6d246ba9.jpg",
+  },
+  {
+    id: "3",
+    title: "Amoxicillin",
+    provider: "GSK",
+    stars: "⭐⭐⭐⭐",
+    reviews: "8",
+    price: "$100",
+    image:
+      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTmuGRAxn27seun7XFyhwV4XENcNVehCUddWA&s",
+  },
+  {
+    id: "4",
+    title: "Cetirizine",
+    provider: "Bayer",
+    stars: "⭐⭐⭐",
+    reviews: "3",
+    price: "$35",
+    image:
+      "https://www.claritin.com.ph/sites/g/files/vrxlpx32636/files/2023-07/Claritin_Tablet_5sHeroFront.png",
+  },
+  {
+    id: "5",
+    title: "Loperamide",
+    provider: "Johnson & Johnson",
+    stars: "⭐⭐⭐⭐",
+    reviews: "7",
+    price: "$60",
+    image:
+      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR4BvSOMrFYfcij-r33l39WHRAG9sg5vXdKfw&s",
+  },
+];
 
 export default function Home() {
-  const [listings, setListings] = useState(null);
-
-  useEffect(() => {
-    const ref = collection(db, "products");
-
-    onSnapshot(ref, (snapshot) => {
-      let results = [];
-      snapshot.docs.forEach((doc) => {
-        results.push({ id: doc.id, ...doc.data() });
-      });
-      setListings(results);
-    });
-  }, []);
-
   return (
     <>
       <div className="bg-[#ededed] h-[100%]">
@@ -59,19 +94,19 @@ export default function Home() {
           </div>
         </div>
         <div className="grid grid-cols-4 gap-6 mx-20 pt-10 pb-20">
-          {/* Rendering the fetched data in cards */}
-          {listings &&
-            listings.map((item) => (
-              <ShopCard
-                key={item.id}
-                image={item.image || "/fallback-image.jpg"} // Ensure 'image' is a field in Firestore
-                title={item.title}
-                provider={item.provider}
-                stars={item.stars}
-                reviews={item.reviews}
-                price={"$" + item.price}
-              />
-            ))}
+          {/* //title, provider, reviews, stars, price image */}
+          {medicine.map((item) => (
+            <ShopCard
+              key={item.id}
+              image={item.image}
+              id={item.id}
+              title={item.title}
+              provider={item.provider}
+              stars={item.stars}
+              reviews={item.reviews}
+              price={item.price}
+            />
+          ))}
         </div>
       </div>
     </>
